@@ -1,14 +1,22 @@
 package com.practice.toby.ch1.dao;
 
+import com.practice.toby.ch1.db.ConnectionMaker;
+import com.practice.toby.ch1.db.SimpleConnectionMaker;
 import com.practice.toby.ch1.domain.User;
 
 import java.sql.*;
 
-public abstract class UserDao {
+public class UserDao {
+
+    private ConnectionMaker connectionMaker;
+    public UserDao(ConnectionMaker connectionMaker) {
+        this.connectionMaker = connectionMaker;
+    }
+
 
     public void add(User user) throws ClassNotFoundException, SQLException {
 
-        Connection c = getConnection();
+        Connection c = connectionMaker.getConnection();
 
         // 2. Statement를 만들고 실행
         PreparedStatement ps = c.prepareStatement(
@@ -27,7 +35,7 @@ public abstract class UserDao {
     }
 
     public User get(String id) throws ClassNotFoundException, SQLException {
-        Connection c = getConnection();
+        Connection c = connectionMaker.getConnection();
 
         PreparedStatement ps = c.prepareStatement(
                     "SELECT * FROM USERS WHERE id = ?"
@@ -49,5 +57,4 @@ public abstract class UserDao {
         return user;
     }
 
-    public abstract Connection getConnection() throws ClassNotFoundException, SQLException;
 }

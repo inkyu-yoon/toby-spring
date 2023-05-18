@@ -17,9 +17,5 @@ public class UserDaoTest {
         dao.add(new User("id2","name","password"));
         dao.add(new User("id3","name","password"));
 
-
-        CountingConnectionMaker connectionMaker = context.getBean("connectionMaker", CountingConnectionMaker.class);
-        System.out.println("Connection counter : " + connectionMaker.getCounter());
-
     }
 }

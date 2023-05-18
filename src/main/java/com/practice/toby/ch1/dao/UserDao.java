@@ -1,22 +1,25 @@
 package com.practice.toby.ch1.dao;
 
-import com.practice.toby.ch1.db.ConnectionMaker;
-import com.practice.toby.ch1.db.SimpleConnectionMaker;
 import com.practice.toby.ch1.domain.User;
 
-import java.sql.*;
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class UserDao {
 
-    private ConnectionMaker connectionMaker;
-    public UserDao(ConnectionMaker connectionMaker) {
-        this.connectionMaker = connectionMaker;
+    private DataSource dataSource;
+
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
 
-    public void add(User user) throws ClassNotFoundException, SQLException {
+    public void add(User user) throws SQLException {
 
-        Connection c = connectionMaker.getConnection();
+        Connection c = dataSource.getConnection();
 
         // 2. Statement를 만들고 실행
         PreparedStatement ps = c.prepareStatement(
@@ -35,7 +38,7 @@ public class UserDao {
     }
 
     public User get(String id) throws ClassNotFoundException, SQLException {
-        Connection c = connectionMaker.getConnection();
+        Connection c = dataSource.getConnection();
 
         PreparedStatement ps = c.prepareStatement(
                     "SELECT * FROM USERS WHERE id = ?"

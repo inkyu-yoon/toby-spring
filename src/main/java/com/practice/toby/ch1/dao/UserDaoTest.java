@@ -12,10 +12,18 @@ public class UserDaoTest {
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
         ApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
         UserDao dao = context.getBean("userDao", UserDao.class);
+        User user1 = new User("1", "name", "password");
+        dao.add(user1);
 
-        dao.add(new User("id1","name","password"));
-        dao.add(new User("id2","name","password"));
-        dao.add(new User("id3","name","password"));
+        User user2 = dao.get(user1.getId());
+
+        if (!user1.getName().equals(user2.getName())) {
+            System.out.println("테스트 실패 name");
+        } else if (!user1.getPassword().equals(user2.getPassword())) {
+            System.out.println("테스트 실패 password");
+        } else {
+            System.out.println("조회 테스트 성공");
+        }
 
     }
 }

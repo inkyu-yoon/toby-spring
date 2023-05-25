@@ -1,21 +1,26 @@
 package com.practice.toby.ch1.dao;
 
 import com.practice.toby.ch1.domain.User;
-import com.practice.toby.ch1.factory.DaoFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import org.springframework.test.annotation.DirtiesContext;
 
+import javax.sql.DataSource;
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@SpringBootTest
+@DirtiesContext
 class UserDaoTest {
 
+    @Autowired
     private UserDao dao;
     private User user1;
     private User user2;
@@ -23,8 +28,8 @@ class UserDaoTest {
 
     @BeforeEach
     public void setUp() throws SQLException {
-        ApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
-        dao = context.getBean("userDao", UserDao.class);
+        DataSource dataSource = new SingleConnectionDataSource("jdbc:mysql://localhost/testdb", "root", "12341234", true);
+        dao.setDataSource(dataSource);
         user1 = new User("id1", "name1", "p1");
         user2 = new User("id2", "name2", "p2");
         user3 = new User("id3", "name3", "p3");

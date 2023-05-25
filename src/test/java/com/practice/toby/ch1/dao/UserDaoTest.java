@@ -18,15 +18,40 @@ class UserDaoTest {
     @Test
     @DisplayName("add와 get 테스트 코드")
     public void addAndGet() throws SQLException, ClassNotFoundException {
-
         ApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
         UserDao dao = context.getBean("userDao", UserDao.class);
+        dao.deleteAll();
+        Assertions.assertThat(dao.getCount()).isEqualTo(0);
+
         User user1 = new User("myNewId", "name", "password");
         dao.add(user1);
+
+        Assertions.assertThat(dao.getCount()).isEqualTo(1);
 
         User user2 = dao.get(user1.getId());
 
         Assertions.assertThat(user1.getName()).isEqualTo(user2.getName());
         Assertions.assertThat(user1.getPassword()).isEqualTo(user2.getPassword());
+    }
+
+    @Test
+    @DisplayName("getCount 테스트 코드")
+    public void getCount() throws SQLException {
+        ApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
+        UserDao dao = context.getBean("userDao", UserDao.class);
+        dao.deleteAll();
+
+        Assertions.assertThat(dao.getCount()).isEqualTo(0);
+
+        dao.add(new User("id1","name","p"));
+        Assertions.assertThat(dao.getCount()).isEqualTo(1);
+
+        dao.add(new User("id2","name","p"));
+        Assertions.assertThat(dao.getCount()).isEqualTo(2);
+
+
+        dao.add(new User("id3","name","p"));
+        Assertions.assertThat(dao.getCount()).isEqualTo(3);
+
     }
 }

@@ -17,46 +17,51 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class UserDaoTest {
 
     private UserDao dao;
+    private User user1;
+    private User user2;
+    private User user3;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws SQLException {
         ApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
         dao = context.getBean("userDao", UserDao.class);
+        user1 = new User("id1", "name1", "p1");
+        user2 = new User("id2", "name2", "p2");
+        user3 = new User("id3", "name3", "p3");
+        dao.deleteAll();
+
     }
 
     @Test
     @DisplayName("add와 get 테스트 코드")
     public void addAndGet() throws SQLException, ClassNotFoundException {
 
-        dao.deleteAll();
         Assertions.assertThat(dao.getCount()).isEqualTo(0);
 
-        User user1 = new User("myNewId", "name", "password");
         dao.add(user1);
 
         Assertions.assertThat(dao.getCount()).isEqualTo(1);
 
-        User user2 = dao.get(user1.getId());
+        User foundUser = dao.get(user1.getId());
 
-        Assertions.assertThat(user1.getName()).isEqualTo(user2.getName());
-        Assertions.assertThat(user1.getPassword()).isEqualTo(user2.getPassword());
+        Assertions.assertThat(user1.getName()).isEqualTo(foundUser.getName());
+        Assertions.assertThat(user1.getPassword()).isEqualTo(foundUser.getPassword());
     }
 
     @Test
     @DisplayName("getCount 테스트 코드")
     public void getCount() throws SQLException {
-        dao.deleteAll();
 
         Assertions.assertThat(dao.getCount()).isEqualTo(0);
 
-        dao.add(new User("id1", "name", "p"));
+        dao.add(user1);
         Assertions.assertThat(dao.getCount()).isEqualTo(1);
 
-        dao.add(new User("id2", "name", "p"));
+        dao.add(user2);
         Assertions.assertThat(dao.getCount()).isEqualTo(2);
 
 
-        dao.add(new User("id3", "name", "p"));
+        dao.add(user3);
         Assertions.assertThat(dao.getCount()).isEqualTo(3);
 
     }

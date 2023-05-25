@@ -1,6 +1,7 @@
 package com.practice.toby.ch1.dao;
 
 import com.practice.toby.ch1.domain.User;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -47,11 +48,17 @@ public class UserDao {
         ps.setString(1, id);
 
         ResultSet rs = ps.executeQuery();
-        rs.next();
-        User user = new User();
-        user.setId(rs.getString("id"));
-        user.setName(rs.getString("name"));
-        user.setPassword(rs.getString("password"));
+        User user = null;
+        if (rs.next()) {
+            user = new User();
+            user.setId(rs.getString("id"));
+            user.setName(rs.getString("name"));
+            user.setPassword(rs.getString("password"));
+        }
+
+        if (user == null) {
+            throw new EmptyResultDataAccessException(1);
+        }
 
         rs.close();
         ps.close();

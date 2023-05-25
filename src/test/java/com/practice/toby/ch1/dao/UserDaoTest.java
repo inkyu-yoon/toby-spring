@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.test.annotation.Rollback;
 
 import java.sql.SQLException;
@@ -52,6 +53,15 @@ class UserDaoTest {
 
         dao.add(new User("id3","name","p"));
         Assertions.assertThat(dao.getCount()).isEqualTo(3);
+
+    }
+
+    @Test
+    @DisplayName("get 메서드 실행 시, 존재하지 않는 경우 예외 발생")
+    public void getError() {
+        ApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
+        UserDao dao = context.getBean("userDao", UserDao.class);
+        assertThrows(EmptyResultDataAccessException.class, () -> dao.get("random"));
 
     }
 }

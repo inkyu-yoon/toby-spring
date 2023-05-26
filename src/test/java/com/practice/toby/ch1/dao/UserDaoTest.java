@@ -8,16 +8,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.datasource.SingleConnectionDataSource;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.ProfileValueSourceConfiguration;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
-import javax.sql.DataSource;
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
-@DirtiesContext
+@ActiveProfiles("test")
 class UserDaoTest {
 
     @Autowired
@@ -28,8 +28,6 @@ class UserDaoTest {
 
     @BeforeEach
     public void setUp() throws SQLException {
-        DataSource dataSource = new SingleConnectionDataSource("jdbc:mysql://localhost/testdb", "root", "12341234", true);
-        dao.setDataSource(dataSource);
         user1 = new User("id1", "name1", "p1");
         user2 = new User("id2", "name2", "p2");
         user3 = new User("id3", "name3", "p3");

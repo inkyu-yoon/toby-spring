@@ -1,6 +1,9 @@
 package com.practice.toby.ch1.dao;
 
 import com.practice.toby.ch1.domain.User;
+import com.practice.toby.ch3.statement.AddStatement;
+import com.practice.toby.ch3.statement.DeleteAllStatement;
+import com.practice.toby.ch3.statement.StatementStrategy;
 import org.springframework.dao.EmptyResultDataAccessException;
 
 import javax.sql.DataSource;
@@ -18,27 +21,11 @@ public class UserDao {
     }
 
 
-    public void add(User user) throws SQLException {
-
-        Connection c = dataSource.getConnection();
-
-        // 2. Statement를 만들고 실행
-        PreparedStatement ps = c.prepareStatement(
-                "INSERT INTO USERS(id,name,password) values(?,?,?)"
-        );
-
-        ps.setString(1, user.getId());
-        ps.setString(2, user.getName());
-        ps.setString(3, user.getPassword());
-
-        ps.executeUpdate();
-
-        // 3. 작업이 끝난 뒤, 리소스 반환
-        ps.close();
-        c.close();
+    public void add(User user) {
+        jdbcContextWithStatementStrategy(new AddStatement(user));
     }
 
-    public User get(String id) throws ClassNotFoundException, SQLException {
+    public User get(String id) throws SQLException {
         Connection c = dataSource.getConnection();
 
         PreparedStatement ps = c.prepareStatement(
@@ -68,13 +55,17 @@ public class UserDao {
     }
 
     public void deleteAll() throws SQLException {
+        jdbcContextWithStatementStrategy(new DeleteAllStatement());
+    }
+
+    public void jdbcContextWithStatementStrategy(StatementStrategy stmt) {
         Connection c = null;
         PreparedStatement ps = null;
 
 
         try {
             c = dataSource.getConnection();
-            ps = c.prepareStatement("delete from users");
+            ps = stmt.makePreparedStatement(c);
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -98,7 +89,7 @@ public class UserDao {
 
     }
 
-    public int getCount() throws SQLException {
+    public int getCount() {
         Connection c = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -134,8 +125,6 @@ public class UserDao {
                     throw new RuntimeException(e);
                 }
             }
-
-
 
 
         }

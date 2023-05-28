@@ -28,8 +28,10 @@ public class UserDao {
 
 
     public void add(User user) {
-        jdbcContext.workWithStatementStrategy(new AddStatement(user));
+        this.jdbcContext.executeAddSql("INSERT INTO USERS(id,name,password) values(?,?,?)",user.getId(),user.getName(),user.getPassword());
     }
+
+
 
     public User get(String id) throws SQLException {
         Connection c = dataSource.getConnection();
@@ -61,7 +63,7 @@ public class UserDao {
     }
 
     public void deleteAll() throws SQLException {
-        jdbcContext.workWithStatementStrategy(new DeleteAllStatement());
+        jdbcContext.executeSql("delete from users");
     }
 
     public int getCount() {

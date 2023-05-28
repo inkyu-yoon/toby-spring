@@ -14,6 +14,30 @@ public class JdbcContext {
         this.dataSource = dataSource;
     }
 
+    public void executeSql(final String sql) {
+        workWithStatementStrategy(new StatementStrategy() {
+            @Override
+            public PreparedStatement makePreparedStatement(Connection connection) throws SQLException {
+                return connection.prepareStatement(sql);
+            }
+        });
+    }
+
+    public void executeAddSql(String sql,String...str) {
+        workWithStatementStrategy(new StatementStrategy() {
+            @Override
+            public PreparedStatement makePreparedStatement(Connection connection) throws SQLException {
+
+                PreparedStatement ps = connection.prepareStatement(sql);
+                int i=1;
+                for (String s : str) {
+                    ps.setString(i++, s);
+                }
+                return ps;
+            }
+        });
+    }
+
     public void workWithStatementStrategy(StatementStrategy stmt) {
         Connection c = null;
         PreparedStatement ps = null;

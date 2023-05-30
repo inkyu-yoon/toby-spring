@@ -8,27 +8,35 @@ import java.io.IOException;
 public class Calculator {
 
     public Integer calcSum(String filePath) {
-        return calc(filePath, new BufferedReaderCallback() {
+        LineCallBack sumOperation = new LineCallBack() {
             @Override
-            public Integer doSomethingWithReader(BufferedReader br) throws IOException {
-                int result = 0;
-                String line = null;
-                while ((line = br.readLine()) != null) {
-                    result += Integer.parseInt(line);
-                }
-                return result;
+            public Integer doSomethingWithLine(String line, Integer value) {
+                return Integer.valueOf(line) + value;
             }
-        });
+        };
+
+        return lineReadTemplate(filePath, sumOperation, 0);
     }
 
     public Integer calcMultiply(String filePath) {
+        LineCallBack multiplyOperation = new LineCallBack() {
+            @Override
+            public Integer doSomethingWithLine(String line, Integer value) {
+                return Integer.valueOf(line) * value;
+            }
+        };
+
+        return lineReadTemplate(filePath, multiplyOperation, 1);
+    }
+
+    public Integer lineReadTemplate(String filePath, LineCallBack callBack, int initVal) {
         return calc(filePath, new BufferedReaderCallback() {
             @Override
             public Integer doSomethingWithReader(BufferedReader br) throws IOException {
-                int result = 1;
+                int result = initVal;
                 String line = null;
                 while ((line = br.readLine()) != null) {
-                    result *= Integer.parseInt(line);
+                    result = callBack.doSomethingWithLine(line, result);
                 }
                 return result;
             }

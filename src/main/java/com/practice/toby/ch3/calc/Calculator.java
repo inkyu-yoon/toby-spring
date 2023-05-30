@@ -7,19 +7,30 @@ import java.io.IOException;
 
 public class Calculator {
 
+    public String concatTexts(String filePath) {
+        LineCallBack<String> concatOperation = new LineCallBack<String>() {
+            @Override
+            public String doSomethingWithLine(String line, String value) {
+                return value + line;
+            }
+        };
+        return lineReadTemplate(filePath, concatOperation, "");
+    }
+
     public Integer calcSum(String filePath) {
-        LineCallBack sumOperation = new LineCallBack() {
+        LineCallBack<Integer> sumOperation = new LineCallBack<Integer>() {
             @Override
             public Integer doSomethingWithLine(String line, Integer value) {
                 return Integer.valueOf(line) + value;
             }
         };
 
+
         return lineReadTemplate(filePath, sumOperation, 0);
     }
 
     public Integer calcMultiply(String filePath) {
-        LineCallBack multiplyOperation = new LineCallBack() {
+        LineCallBack<Integer> multiplyOperation = new LineCallBack<Integer>() {
             @Override
             public Integer doSomethingWithLine(String line, Integer value) {
                 return Integer.valueOf(line) * value;
@@ -29,23 +40,24 @@ public class Calculator {
         return lineReadTemplate(filePath, multiplyOperation, 1);
     }
 
-    public Integer lineReadTemplate(String filePath, LineCallBack callBack, int initVal) {
-        return calc(filePath, new BufferedReaderCallback() {
+    public <T> T lineReadTemplate(String filePath, LineCallBack<T> callBack, T initVal) {
+        BufferedReaderCallback<T> bufferedReaderCallback = new BufferedReaderCallback() {
             @Override
-            public Integer doSomethingWithReader(BufferedReader br) throws IOException {
-                int result = initVal;
+            public T doSomethingWithReader(BufferedReader br) throws IOException {
+                T result = initVal;
                 String line = null;
                 while ((line = br.readLine()) != null) {
                     result = callBack.doSomethingWithLine(line, result);
                 }
                 return result;
             }
-        });
+        };
+        return calc(filePath, bufferedReaderCallback);
     }
 
-    public Integer calc(String filePath, BufferedReaderCallback callback) {
+    public <T> T calc(String filePath, BufferedReaderCallback<T> callback) {
         BufferedReader br = null;
-        Integer result = null;
+        T result = null;
         try {
             br = new BufferedReader(new FileReader(filePath));
             result = callback.doSomethingWithReader(br);

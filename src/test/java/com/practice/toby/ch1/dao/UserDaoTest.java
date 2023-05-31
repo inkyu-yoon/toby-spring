@@ -8,13 +8,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.test.annotation.ProfileValueSourceConfiguration;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -74,5 +73,33 @@ class UserDaoTest {
     public void getError() {
 
         assertThrows(EmptyResultDataAccessException.class, () -> dao.get("random"));
+    }
+
+
+    @Test
+    @DisplayName("getAll 메서드 테스트")
+    public void getAllTest() {
+
+        dao.add(user1);
+        Assertions.assertThat(dao.getAll().size()).isEqualTo(1);
+
+        dao.add(user2);
+        Assertions.assertThat(dao.getAll().size()).isEqualTo(2);
+
+
+        dao.add(user3);
+        Assertions.assertThat(dao.getAll().size()).isEqualTo(3);
+
+        Assertions.assertThat(dao.getAll().get(0).getName()).isEqualTo(user1.getName());
+        Assertions.assertThat(dao.getAll().get(1).getName()).isEqualTo(user2.getName());
+        Assertions.assertThat(dao.getAll().get(2).getName()).isEqualTo(user3.getName());
+    }
+    @Test
+    @DisplayName("getAll 메서드 테스트(데이터가 없을 때)")
+    public void getAllTest2() {
+
+        assertTrue(dao.getAll().isEmpty());
+        Assertions.assertThat(dao.getAll().size()).isEqualTo(0);
+
     }
 }

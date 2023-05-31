@@ -20,7 +20,6 @@ public class DaoFactory {
         DataSource dataSource = dataSource();
 
         userDao.setDataSource(dataSource);
-        userDao.setJdbcContext(new JdbcContext(dataSource));
         return userDao;
     }
     @Bean

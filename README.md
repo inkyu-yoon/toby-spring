@@ -373,5 +373,40 @@ checked 예외 처리의 경우 예외처리를 강제하여 안정성을 높이
 
   </details>
 
+<details>
+<summary><h3> JdbcTemplate 를 사용하면 왜 SQLException을 throws 하거나 명시적으로 처리하지 않는가</h3></summary>
+JdbcTemplate 템플릿과 콜백 안에서 발생하는 모든 SQLException을 런타임 예외인 DataAccessException으로 포장해서 던져준다.
+
+따라서, 필요한 경우에만 DataAccessException을 catch해서 처리하면 된다.
+
+<br>
+런타임 예외이므로 unchecked 예외이고, 따라서 호출하는 메서드에서 이를 꼭 처리해야할 의무는 없다.
+
+<br>
+
+JdbcTemplate의 쿼리를 전달하는 템플릿을 보면, 아래와 같이 SQLException을 런타임 예외인 DataAccessException에 포장하여 중첩예외 형태로 던지는 것을 확인할 수 있다.
+
+```java
+catch (SQLException ex) {
+   // Release Connection early, to avoid potential connection pool deadlock
+   // in the case when the exception translator hasn't been initialized yet.
+   if (psc instanceof ParameterDisposer parameterDisposer) {
+      parameterDisposer.cleanupParameters();
+   }
+   String sql = getSql(psc);
+   psc = null;
+   JdbcUtils.closeStatement(ps);
+   ps = null;
+   DataSourceUtils.releaseConnection(con, getDataSource());
+   con = null;
+   throw translateException("PreparedStatementCallback", sql, ex);
+}
+```
+
+따라서, 우리가 JdbcTemplate에 있는 메서드를 사용할 때, SQLException은 템플릿에서 처리되어 호출한 메서드로 throws 하지 않기 때문에 SQLException 선언이 사라진 것이다.
+
+
+
+  </details>
 
   </details>

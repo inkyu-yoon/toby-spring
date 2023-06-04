@@ -1,6 +1,5 @@
 package com.practice.toby.ch1.dao;
 
-import com.practice.toby.ch1.db.CountingConnectionMaker;
 import com.practice.toby.ch1.domain.User;
 import com.practice.toby.ch1.factory.DaoFactory;
 import org.springframework.context.ApplicationContext;
@@ -11,7 +10,7 @@ import java.sql.SQLException;
 public class UserDaoTest {
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
         ApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
-        UserDao dao = context.getBean("userDao", UserDao.class);
+        UserDaoJdbc dao = context.getBean("userDao", UserDaoJdbc.class);
         User user1 = new User("1", "name", "password");
         dao.add(user1);
 

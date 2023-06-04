@@ -1,17 +1,16 @@
 package com.practice.toby.ch1.dao;
 
 import com.practice.toby.ch1.domain.User;
-import com.practice.toby.ch3.jdbc.JdbcContext;
+import com.practice.toby.ch4.dao.UserDao;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.List;
 
-public class UserDao {
+public class UserDaoJdbc implements UserDao {
 
     private JdbcTemplate jdbcTemplate;
     private RowMapper<User> userRowMapper = new RowMapper<User>() {
@@ -30,12 +29,12 @@ public class UserDao {
     }
 
 
-    public User get(String id) throws SQLException {
+    public User get(String id){
         return this.jdbcTemplate.queryForObject("SELECT * FROM USERS WHERE id = ?",
                 new Object[]{id}, this.userRowMapper);
     }
 
-    public void deleteAll() throws SQLException {
+    public void deleteAll() {
         jdbcTemplate.update("delete from users");
     }
 

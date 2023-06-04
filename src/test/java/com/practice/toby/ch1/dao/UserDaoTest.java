@@ -1,6 +1,7 @@
 package com.practice.toby.ch1.dao;
 
 import com.practice.toby.ch1.domain.User;
+import com.practice.toby.ch4.dao.UserDao;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

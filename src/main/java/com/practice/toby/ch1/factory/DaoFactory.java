@@ -1,7 +1,6 @@
 package com.practice.toby.ch1.factory;
 
-import com.practice.toby.ch1.dao.UserDao;
-import com.practice.toby.ch3.jdbc.JdbcContext;
+import com.practice.toby.ch1.dao.UserDaoJdbc;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +14,8 @@ public class DaoFactory {
     String dataSourceUrl;
 
     @Bean
-    public UserDao userDao() {
-        UserDao userDao = new UserDao();
+    public UserDaoJdbc userDao() {
+        UserDaoJdbc userDao = new UserDaoJdbc();
         DataSource dataSource = dataSource();
 
         userDao.setDataSource(dataSource);

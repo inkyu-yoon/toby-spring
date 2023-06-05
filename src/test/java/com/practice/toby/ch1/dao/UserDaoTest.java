@@ -1,5 +1,6 @@
 package com.practice.toby.ch1.dao;
 
+import com.practice.toby.ch1.domain.Level;
 import com.practice.toby.ch1.domain.User;
 import com.practice.toby.ch4.dao.UserDao;
 import org.assertj.core.api.Assertions;
@@ -17,6 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
+import static com.practice.toby.ch1.domain.Level.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,9 +39,9 @@ class UserDaoTest {
 
     @BeforeEach
     public void setUp() throws SQLException {
-        user1 = new User("id1", "name1", "p1");
-        user2 = new User("id2", "name2", "p2");
-        user3 = new User("id3", "name3", "p3");
+        user1 = new User("id1", "name1", "p1", BASIC, 1, 0);
+        user2 = new User("id2", "name2", "p2", SILVER, 55, 10);
+        user3 = new User("id3", "name3", "p3", GOLD, 100, 40);
         dao.deleteAll();
 
     }
@@ -58,6 +60,9 @@ class UserDaoTest {
 
         assertThat(user1.getName()).isEqualTo(foundUser.getName());
         assertThat(user1.getPassword()).isEqualTo(foundUser.getPassword());
+        assertThat(user1.getLevel()).isEqualTo(foundUser.getLevel());
+        assertThat(user1.getLogin()).isEqualTo(foundUser.getLogin());
+        assertThat(user1.getRecommend()).isEqualTo(foundUser.getRecommend());
     }
 
     @Test

@@ -8,11 +8,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator;
 import org.springframework.test.context.ActiveProfiles;
 
+import javax.sql.DataSource;
 import java.sql.SQLException;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -22,6 +27,10 @@ class UserDaoTest {
 
     @Autowired
     private UserDao dao;
+
+    @Autowired
+    private DataSource dataSource;
+
     private User user1;
     private User user2;
     private User user3;
@@ -39,33 +48,33 @@ class UserDaoTest {
     @DisplayName("add와 get 테스트 코드")
     public void addAndGet() throws SQLException, ClassNotFoundException {
 
-        Assertions.assertThat(dao.getCount()).isEqualTo(0);
+        assertThat(dao.getCount()).isEqualTo(0);
 
         dao.add(user1);
 
-        Assertions.assertThat(dao.getCount()).isEqualTo(1);
+        assertThat(dao.getCount()).isEqualTo(1);
 
         User foundUser = dao.get(user1.getId());
 
-        Assertions.assertThat(user1.getName()).isEqualTo(foundUser.getName());
-        Assertions.assertThat(user1.getPassword()).isEqualTo(foundUser.getPassword());
+        assertThat(user1.getName()).isEqualTo(foundUser.getName());
+        assertThat(user1.getPassword()).isEqualTo(foundUser.getPassword());
     }
 
     @Test
     @DisplayName("getCount 테스트 코드")
     public void getCount() throws SQLException {
 
-        Assertions.assertThat(dao.getCount()).isEqualTo(0);
+        assertThat(dao.getCount()).isEqualTo(0);
 
         dao.add(user1);
-        Assertions.assertThat(dao.getCount()).isEqualTo(1);
+        assertThat(dao.getCount()).isEqualTo(1);
 
         dao.add(user2);
-        Assertions.assertThat(dao.getCount()).isEqualTo(2);
+        assertThat(dao.getCount()).isEqualTo(2);
 
 
         dao.add(user3);
-        Assertions.assertThat(dao.getCount()).isEqualTo(3);
+        assertThat(dao.getCount()).isEqualTo(3);
 
     }
 
@@ -82,25 +91,41 @@ class UserDaoTest {
     public void getAllTest() {
 
         dao.add(user1);
-        Assertions.assertThat(dao.getAll().size()).isEqualTo(1);
+        assertThat(dao.getAll().size()).isEqualTo(1);
 
         dao.add(user2);
-        Assertions.assertThat(dao.getAll().size()).isEqualTo(2);
+        assertThat(dao.getAll().size()).isEqualTo(2);
 
 
         dao.add(user3);
-        Assertions.assertThat(dao.getAll().size()).isEqualTo(3);
+        assertThat(dao.getAll().size()).isEqualTo(3);
 
-        Assertions.assertThat(dao.getAll().get(0).getName()).isEqualTo(user1.getName());
-        Assertions.assertThat(dao.getAll().get(1).getName()).isEqualTo(user2.getName());
-        Assertions.assertThat(dao.getAll().get(2).getName()).isEqualTo(user3.getName());
+        assertThat(dao.getAll().get(0).getName()).isEqualTo(user1.getName());
+        assertThat(dao.getAll().get(1).getName()).isEqualTo(user2.getName());
+        assertThat(dao.getAll().get(2).getName()).isEqualTo(user3.getName());
     }
+
     @Test
     @DisplayName("getAll 메서드 테스트(데이터가 없을 때)")
     public void getAllTest2() {
 
         assertTrue(dao.getAll().isEmpty());
-        Assertions.assertThat(dao.getAll().size()).isEqualTo(0);
+        assertThat(dao.getAll().size()).isEqualTo(0);
 
+    }
+
+    @Test
+    @DisplayName("중복 키 에러 테스트")
+    public void duplicateKey() {
+        try {
+            dao.add(user1);
+            dao.add(user1);
+        } catch (DuplicateKeyException e) {
+            SQLException rootCause = (SQLException) e.getRootCause();
+            SQLErrorCodeSQLExceptionTranslator error = new SQLErrorCodeSQLExceptionTranslator(this.dataSource);
+
+            assertThat(error.translate(null, null, rootCause))
+                    .isInstanceOf(DuplicateKeyException.class);
+        }
     }
 }

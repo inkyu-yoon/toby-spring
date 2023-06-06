@@ -3,6 +3,7 @@ package com.practice.toby.ch1.dao;
 import com.practice.toby.ch1.domain.Level;
 import com.practice.toby.ch1.domain.User;
 import com.practice.toby.ch4.dao.UserDao;
+import com.practice.toby.ch5.service.UserService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,14 +34,17 @@ class UserDaoTest {
     @Autowired
     private DataSource dataSource;
 
+    @Autowired
+    private UserService userService;
+
     private User user1;
     private User user2;
     private User user3;
 
     @BeforeEach
     public void setUp() throws SQLException {
-        user1 = new User("id1", "name1", "p1", BASIC, 1, 0);
-        user2 = new User("id2", "name2", "p2", SILVER, 55, 10);
+        user1 = new User("id1", "name1", "p1", BASIC, 51, 0);
+        user2 = new User("id2", "name2", "p2", SILVER, 55, 40);
         user3 = new User("id3", "name3", "p3", GOLD, 100, 40);
         dao.deleteAll();
 
@@ -150,8 +154,70 @@ class UserDaoTest {
         checkSameUser(user1, foundUser);
     }
 
+    @Test
+    @DisplayName("베이직 유저 등급 업그레이드 테스트")
+    public void upgradeTest() {
+        String basicUser1Id = "basic1";
+        String basicUser2Id = "basic2";
+        String basicUser3Id = "basic3";
 
-    private void checkSameUser(User user,User foundUser) {
+        User basicUser1 = new User(basicUser1Id, "name", "password", BASIC, 40, 0);
+        User basicUser2 = new User(basicUser2Id, "name", "password", BASIC, 50, 0);
+        User basicUser3 = new User(basicUser3Id, "name", "password", BASIC, 0, 30);
+
+        dao.add(basicUser1);
+        dao.add(basicUser2);
+        dao.add(basicUser3);
+
+        userService.upgradeLevels();
+
+        User foundBasicUser1 = dao.get(basicUser1Id);
+        User foundBasicUser2 = dao.get(basicUser2Id);
+        User foundBasicUser3 = dao.get(basicUser3Id);
+
+        assertThat(foundBasicUser1.getLevel()).isEqualTo(BASIC);
+        assertThat(foundBasicUser2.getLevel()).isEqualTo(SILVER);
+        assertThat(foundBasicUser3.getLevel()).isEqualTo(BASIC);
+    }
+
+    @Test
+    @DisplayName("실버 유저 등급 업그레이드 테스트")
+    public void upgradeTest2() {
+        String silverUser1Id = "silver1";
+        String silverUser2Id = "silver2";
+
+        User silverUser1 = new User(silverUser1Id, "name", "password", SILVER, 40, 0);
+        User silverUser2 = new User(silverUser2Id, "name", "password", SILVER, 50, 30);
+
+        dao.add(silverUser1);
+        dao.add(silverUser2);
+
+        userService.upgradeLevels();
+
+        User foundSilverUser1 = dao.get(silverUser1Id);
+        User foundSilverUser2 = dao.get(silverUser2Id);
+
+        assertThat(foundSilverUser1.getLevel()).isEqualTo(SILVER);
+        assertThat(foundSilverUser2.getLevel()).isEqualTo(GOLD);
+    }
+
+    @Test
+    @DisplayName("골드 유저 등급 업그레이드 테스트")
+    public void upgradeTest3() {
+        String goldUserId = "gold";
+        User goldUser = new User(goldUserId, "name", "password", GOLD, 40, 0);
+
+        dao.add(goldUser);
+
+        userService.upgradeLevels();
+
+        User foundGoldUser = dao.get(goldUserId);
+
+        assertThat(foundGoldUser.getLevel()).isEqualTo(GOLD);
+    }
+
+    private void checkSameUser(User user, User foundUser) {
+
         assertThat(user.getName()).isEqualTo(foundUser.getName());
         assertThat(user.getPassword()).isEqualTo(foundUser.getPassword());
         assertThat(user.getLevel()).isEqualTo(foundUser.getLevel());

@@ -17,4 +17,8 @@ public class User {
     int login;
     int recommend;
 
+    public User upgradeLevel() {
+        this.level = Level.valueOf(this.level.getValue() + 1);
+        return this;
+    }
 }

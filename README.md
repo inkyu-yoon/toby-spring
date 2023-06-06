@@ -438,3 +438,97 @@ try{
 
 
   </details>
+
+
+<details>
+
+<summary><h2> Chapter 5. 서비스 추상화 </h2></summary>
+
+  <details>
+
+  <summary><h3> 회원 등급 업그레이드 예제 코드 개선해보기</h3></summary>
+
+```java
+public void upgradeLevels(){
+    List<User> users = dao.getAll();
+    for(User user : users){
+        Boolean changed = null;
+        if (user.getLevel() == Level.BASIC && user.getLogin() >=50){
+            user.setLevel(Level.SILVER);
+            changed = true;
+        } else if (user.getLevel() == Level.SILVER && user.getRecommend() >=30){
+            user.setLevel(Level.GOLD);
+            changed = true;
+        } else if (user.getLevel() == Level.GOLD){
+            changed = false;
+        } else {
+            changed = false;
+        }
+        
+        if (changed){
+            dao.update(user);
+        }
+    }
+}
+```
+
+
+
+교재에 나와 있는 회원 등급 업그레이드를 하는메서드이다.
+
+베이직 회원인 경우, 로그인 횟수가 50 이상이면 실버 회원이 되고
+
+실버 회원인 경우, 추천 수가 30 이상이면 골드 회원이 된다.
+
+골드 회원이거나, 위 조건을 만족하지 못하면 회원 등급 변경은 없다.
+
+위, 메서드를 Stream API를 활용해서 간결하게 개선해보았다.
+
+<br>
+
+
+
+```java 
+public void upgradeLevels() {
+
+	List<User> users = userDao.getAll();
+
+	users.stream()
+		.filter(user -> (user.getLevel().equals(Level.BASIC) && user.getLogin() >= 50)
+            	|| (user.getLevel().equals(Level.SILVER) && user.getRecommend() >= 30))
+         .forEach(user -> userDao.update(user.upgradeLevel()));
+    }
+```
+
+`getAll()` 메서드로 가져온 List에 담겨진 user들을 `filter()` 메서드로 등업 조건에 해당하는 user만 필터링한다.
+
+<br>
+
+```java
+public class User {
+    String id;
+    String name;
+    String password;
+    Level level;
+    int login;
+    int recommend;
+
+    public User upgradeLevel() {
+        this.level = Level.valueOf(this.level.getValue() + 1);
+        return this;
+    }
+}
+```
+
+그리고, 필터링 된 각 user의 등급을 1 등급씩 올리고 수정된 User 본인을 반환하는 `upgradeLevel()` 메서드를 User 객체안에 정의했다.
+
+3개의 테스트 케이스를 작성해서, 정상 동작함을 확인할 수 있었다.
+
+<br>
+
+Stream API를 사용해서 코드도 간결해지고, 객체에게 행위를 부여하여 좀 더 객체 지향적인 코드로 개선할 수 있었던 것 같다.
+
+  </details>
+
+
+</details>

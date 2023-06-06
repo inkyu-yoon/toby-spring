@@ -58,12 +58,10 @@ class UserDaoTest {
 
         User foundUser = dao.get(user1.getId());
 
-        assertThat(user1.getName()).isEqualTo(foundUser.getName());
-        assertThat(user1.getPassword()).isEqualTo(foundUser.getPassword());
-        assertThat(user1.getLevel()).isEqualTo(foundUser.getLevel());
-        assertThat(user1.getLogin()).isEqualTo(foundUser.getLogin());
-        assertThat(user1.getRecommend()).isEqualTo(foundUser.getRecommend());
+        checkSameUser(user1,foundUser);
     }
+
+
 
     @Test
     @DisplayName("getCount 테스트 코드")
@@ -132,5 +130,32 @@ class UserDaoTest {
             assertThat(error.translate(null, null, rootCause))
                     .isInstanceOf(DuplicateKeyException.class);
         }
+    }
+
+    @Test
+    @DisplayName("회원 정보 수정 테스트")
+    public void updateTest() {
+        dao.add(user1);
+
+        user1.setName("바꿈");
+        user1.setPassword("바꿈");
+        user1.setLogin(1000);
+        user1.setLevel(GOLD);
+        user1.setRecommend(999);
+
+        dao.update(user1);
+
+        User foundUser = dao.get(user1.getId());
+
+        checkSameUser(user1, foundUser);
+    }
+
+
+    private void checkSameUser(User user,User foundUser) {
+        assertThat(user.getName()).isEqualTo(foundUser.getName());
+        assertThat(user.getPassword()).isEqualTo(foundUser.getPassword());
+        assertThat(user.getLevel()).isEqualTo(foundUser.getLevel());
+        assertThat(user.getLogin()).isEqualTo(foundUser.getLogin());
+        assertThat(user.getRecommend()).isEqualTo(foundUser.getRecommend());
     }
 }

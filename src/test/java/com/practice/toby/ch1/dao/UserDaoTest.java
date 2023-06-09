@@ -216,6 +216,29 @@ class UserDaoTest {
         assertThat(foundGoldUser.getLevel()).isEqualTo(GOLD);
     }
 
+    @Test
+    @DisplayName("회원 기본 등급 테스트")
+    public void userBasicLevel() {
+        User nullLevelUser = user1;
+        nullLevelUser.setLevel(null);
+
+        User silverUser = user2;
+        User goldLevelUser = user3;
+
+        userService.add(nullLevelUser);
+        userService.add(silverUser);
+        userService.add(goldLevelUser);
+
+        User foundNullLevelUser = dao.get(nullLevelUser.getId());
+        User foundSilverLevelUser = dao.get(silverUser.getId());
+        User foundGoldLevelUser = dao.get(goldLevelUser.getId());
+
+        assertThat(foundNullLevelUser.getLevel()).isEqualTo(BASIC);
+        assertThat(foundSilverLevelUser.getLevel()).isEqualTo(SILVER);
+        assertThat(foundGoldLevelUser.getLevel()).isEqualTo(GOLD);
+    }
+
+
     private void checkSameUser(User user, User foundUser) {
 
         assertThat(user.getName()).isEqualTo(foundUser.getName());

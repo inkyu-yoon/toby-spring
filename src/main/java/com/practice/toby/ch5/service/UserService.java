@@ -20,8 +20,20 @@ public class UserService {
         List<User> users = userDao.getAll();
 
         users.stream()
-                .filter(user -> (user.getLevel().equals(Level.BASIC) && user.getLogin() >= 50) || (user.getLevel().equals(Level.SILVER) && user.getRecommend() >= 30))
+                .filter(user -> canUpgradeLevel(user) )
                 .forEach(user -> userDao.update(user.upgradeLevel()));
+
+    }
+
+    public boolean canUpgradeLevel(User user) {
+        return user.canUpgradeLevelBasic() || user.canUpgradeLevelSilver();
+    }
+
+    public void add(User user) {
+
+        user.validateAndSetDefaultLevel();
+
+        userDao.add(user);
 
     }
 }

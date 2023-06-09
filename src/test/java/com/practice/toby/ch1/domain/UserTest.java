@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.sql.SQLException;
 
 import static com.practice.toby.ch1.domain.Level.*;
+import static com.practice.toby.ch1.domain.UserConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserTest {
@@ -51,8 +52,8 @@ class UserTest {
     @Test
     @DisplayName("회원 등업 조건 테스트")
     public void upgradeConditionTest() {
-        boolean basicUser = user1.canUpgradeLevelBasic();
-        boolean silverUser = user2.canUpgradeLevelSilver();
+        boolean basicUser = user1.canUpgradeLevelBasic(MIN_LOGIN_COUNT_FOR_SILVER);
+        boolean silverUser = user2.canUpgradeLevelSilver(MIN_RECOMMEND_COUNT_FOR_GOLD);
 
         Assertions.assertThat(basicUser).isTrue();
         Assertions.assertThat(silverUser).isTrue();
@@ -60,8 +61,8 @@ class UserTest {
         user1.setLogin(0);
         user2.setRecommend(0);
 
-        basicUser = user1.canUpgradeLevelBasic();
-        silverUser = user2.canUpgradeLevelSilver();
+        basicUser = user1.canUpgradeLevelBasic(MIN_LOGIN_COUNT_FOR_SILVER);
+        silverUser = user2.canUpgradeLevelSilver(MIN_RECOMMEND_COUNT_FOR_GOLD);
 
         Assertions.assertThat(basicUser).isFalse();
         Assertions.assertThat(silverUser).isFalse();

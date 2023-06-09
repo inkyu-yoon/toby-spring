@@ -32,11 +32,11 @@ public class User {
         }
     }
 
-    public boolean canUpgradeLevelBasic() {
-        return this.level.equals(Level.BASIC) && this.login >= UserConstants.MIN_LOGIN_COUNT_FOR_SILVER;
+    public boolean canUpgradeLevelBasic(int minLoginCountForUpgrade) {
+        return this.level.equals(Level.BASIC) && this.login >= minLoginCountForUpgrade;
     }
 
-    public boolean canUpgradeLevelSilver() {
-        return this.level.equals(Level.SILVER) && this.recommend >= UserConstants.MIN_RECOMMEND_COUNT_FOR_GOLD;
+    public boolean canUpgradeLevelSilver(int minRecommendCountForUpgrade) {
+        return this.level.equals(Level.SILVER) && this.recommend >= minRecommendCountForUpgrade;
     }
 }

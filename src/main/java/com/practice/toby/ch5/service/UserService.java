@@ -3,10 +3,13 @@ package com.practice.toby.ch5.service;
 
 import com.practice.toby.ch1.domain.Level;
 import com.practice.toby.ch1.domain.User;
+import com.practice.toby.ch1.domain.UserConstants;
 import com.practice.toby.ch4.dao.UserDao;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+
+import static com.practice.toby.ch1.domain.UserConstants.*;
 
 @RequiredArgsConstructor
 public class UserService {
@@ -26,7 +29,7 @@ public class UserService {
     }
 
     public boolean canUpgradeLevel(User user) {
-        return user.canUpgradeLevelBasic() || user.canUpgradeLevelSilver();
+        return user.canUpgradeLevelBasic(MIN_LOGIN_COUNT_FOR_SILVER) || user.canUpgradeLevelSilver(MIN_RECOMMEND_COUNT_FOR_GOLD);
     }
 
     public void add(User user) {

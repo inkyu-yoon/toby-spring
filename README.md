@@ -482,25 +482,37 @@ public void upgradeLevels(){
 
 골드 회원이거나, 위 조건을 만족하지 못하면 회원 등급 변경은 없다.
 
-위, 메서드를 Stream API를 활용해서 간결하게 개선해보았다.
+위, 메서드를 객체 지향적인 구조로 리팩토링하고 Stream API를 활용해서 간결하게 개선해보았다.
 
 <br>
 
 
 
 ```java 
-public void upgradeLevels() {
+    public void upgradeLevels() {
 
-	List<User> users = userDao.getAll();
+        List<User> users = userDao.getAll();
 
-	users.stream()
-		.filter(user -> (user.getLevel().equals(Level.BASIC) && user.getLogin() >= 50)
-            	|| (user.getLevel().equals(Level.SILVER) && user.getRecommend() >= 30))
-         .forEach(user -> userDao.update(user.upgradeLevel()));
+        users.stream()
+                .filter(user -> canUpgradeLevel(user) )
+                .forEach(user -> userDao.update(user.upgradeLevel()));
+
+    }
+
+    public boolean canUpgradeLevel(User user) {
+        return user.canUpgradeLevelBasic(MIN_LOGIN_COUNT_FOR_SILVER) || user.canUpgradeLevelSilver(MIN_RECOMMEND_COUNT_FOR_GOLD);
     }
 ```
 
 `getAll()` 메서드로 가져온 List에 담겨진 user들을 `filter()` 메서드로 등업 조건에 해당하는 user만 필터링한다.
+
+등업 조건을 확인하는 메서드 역시, 생각해보면 나중에 충분히 바뀔 수 있는 로직이다.
+
+따라서, 메서드로 분리하였고 등급 별 등업 조건이 다르므로 이 부분도 분리해주었다.
+
+<br>
+
+그리고 User 객체 본인의 레벨과 login 혹은 recommend 수를 통해 등업할 수 있는 조건인지 확인하고 등업 조건에 해당하는 login 수나 recommend 수는 Enum 타입으로 관리하도록 했다.
 
 <br>
 
@@ -517,6 +529,14 @@ public class User {
         this.level = Level.valueOf(this.level.getValue() + 1);
         return this;
     }
+    
+    public boolean canUpgradeLevelBasic(int minLoginCountForUpgrade) {
+        return this.level.equals(Level.BASIC) && this.login >= minLoginCountForUpgrade;
+    }
+
+    public boolean canUpgradeLevelSilver(int minRecommendCountForUpgrade) {
+        return this.level.equals(Level.SILVER) && this.recommend >= minRecommendCountForUpgrade;
+    }
 }
 ```
 
@@ -526,7 +546,21 @@ public class User {
 
 <br>
 
-Stream API를 사용해서 코드도 간결해지고, 객체에게 행위를 부여하여 좀 더 객체 지향적인 코드로 개선할 수 있었던 것 같다.
+객체 지향적인 코드는 다른 오브젝트의 데이터를 가져와서 작업하는 대신 데이터를 갖고 있는 다른 오브젝트에게 작업을 해달라고 요청한다.
+
+오브젝트에게 데이터를 요구하지 말고 작업을 요청하라는 것이 객체지향 프로그래밍의 가장 기본적인 원리이다.
+
+<br>
+
+따라서 user의 레벨을 가져와서 service 가 대신 user.getLevel() 해서 등업 조건에 만족하는지 확인하고 user.setLevel(nextLevel) 메서드를 호출해서 등급을 변경시키는 것이 아니라
+
+user가 갖고 있는 메서드를 통해서 user 객체 스스로가 판단하고 본인의 필드를 본인이 변경할 수 있게끔 행동을 유도하도록 코드를 작성하였다.
+
+
+<br>
+
+Stream API를 사용해서 코드도 간결해지고, 객체에게 행위를 부여하였고 변경될 수 있는 부분을 고려한 좀 더 객체 지향적인 코드로 개선할 수 있었던 것 같다.
+
 
   </details>
 

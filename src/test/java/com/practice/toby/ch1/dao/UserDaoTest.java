@@ -15,6 +15,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -34,6 +35,9 @@ class UserDaoTest {
 
     @Autowired
     private DataSource dataSource;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     @Autowired
     private UserService userService;
@@ -254,10 +258,10 @@ class UserDaoTest {
     @Test
     @DisplayName("업그레이드 중간에 회원 에러 발생 시")
     public void upgradeErrorTest() {
-        TestUserService testUserService = new TestUserService(dao, dataSource, user2.getId());
+        TestUserService testUserService = new TestUserService(dao, transactionManager, user2.getId());
 
         testUserService.setUserDao(dao);
-        testUserService.setDataSource(dataSource);
+        testUserService.setTransactionManager(transactionManager);
 
         testUserService.add(user1);
         testUserService.add(user2);

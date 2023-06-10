@@ -4,6 +4,9 @@ import com.practice.toby.ch1.domain.User;
 import com.practice.toby.ch4.dao.UserDao;
 import lombok.Setter;
 import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.sql.DataSource;
@@ -17,19 +20,18 @@ public class TestUserService extends UserService {
 
     private UserDao userDao;
     private String id;
-    private DataSource dataSource;
+
+    private PlatformTransactionManager transactionManager;
 
 
-    public TestUserService(UserDao userDao, DataSource dataSource, String id) {
-        super(userDao, dataSource);
+    public TestUserService(UserDao userDao, PlatformTransactionManager transactionManager, String id) {
+        super(userDao, transactionManager);
         this.id = id;
     }
 
     @Override
     public void upgradeLevels() throws SQLException {
-        TransactionSynchronizationManager.initSynchronization();
-        Connection c = DataSourceUtils.getConnection(dataSource);
-        c.setAutoCommit(false);
+        TransactionStatus transaction = transactionManager.getTransaction(new DefaultTransactionDefinition());
 
 
         try {
@@ -45,15 +47,10 @@ public class TestUserService extends UserService {
                         }
                     });
 
-            c.commit();
+            transactionManager.commit(transaction);
         } catch (Exception e) {
-            c.rollback();
+            transactionManager.rollback(transaction);
             throw new UserServiceException();
-        } finally {
-            DataSourceUtils.releaseConnection(c, dataSource);
-            TransactionSynchronizationManager.unbindResource(this.dataSource);
-            TransactionSynchronizationManager.clearSynchronization();
         }
-
     }
 }

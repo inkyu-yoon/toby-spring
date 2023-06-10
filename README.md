@@ -672,4 +672,64 @@ public void upgradeLevels() throws SQLException {
 
   </details>
 
+
+  <details>
+
+  <summary><h3> 글로벌 트랜잭션 인터페이스를 적용한 유연성 향상 </h3></summary>
+
+
+하나의 트랜잭션 안에서 여러개의 DB에 데이터를 넣는 작업은 JDBC의 Connection을 이용한 로컬 트랜잭션 방식으로는 불가능하다.
+
+별도의 트랜잭션 관리자를 통해 트랜잭션을 관리하는 **글로벌 트랜잭션** 방식을 사용해야한다.
+
+<br>
+
+글로벌 트랜잭션 관리는 JDBC와 Hibernate와 방식이 다르기 때문에 추상화되어 있는 가장 상위 클래스를 스프링은 제공한다.
+
+이를 이용하면, 애플리케이션에서 직접 각 기술의 트랜잭션 API를 이용하지 않고도 일관된 방식으로 트랜잭션을 제어하는 작업이 가능해진다.
+
+<br>
+
+`PlatformTransactionManager` 라는 인터페이스가 존재하고 이를 이용해서 글로벌 트랜잭션을 이용하면 된다.
+
+<br>
+
+```java
+    public void upgradeLevels() throws SQLException {
+        PlatformTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
+        TransactionStatus transaction = transactionManager.getTransaction(new DefaultTransactionDefinition());
+
+        try {
+            List<User> users = userDao.getAll();
+
+            users.stream()
+                    .filter(user -> canUpgradeLevel(user))
+                    .forEach(user -> userDao.update(user.upgradeLevel()));
+
+            transactionManager.commit(transaction);
+        } catch (Exception e) {
+            transactionManager.rollback(transaction);
+            throw new RuntimeException(e);
+        }
+    }
+```
+
+
+
+위와 같이 JDBC의 로컬 트랜잭션을 사용하는 경우는 `PlatformTransactionManager` 인터페이스를 구현한 `DataSourceTransactionManager` 를 사용하면 된다.
+
+`getTransaction()` 메서드를 사용하면 트랜잭션이 시작된다.
+
+<br>
+
+만약 JTA를 이용하는 글로벌 트랜잭션 방식으로 변경하고 싶다면
+
+```
+PlatformTransactionManager transactionManager = new JTATransactionManager();
+```
+
+위와 같이, 할당되는 구현 클래스만 변경시키면 된다.
+
+  </details>
+
 </details>

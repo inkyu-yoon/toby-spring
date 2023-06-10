@@ -165,7 +165,7 @@ class UserDaoTest {
 
     @Test
     @DisplayName("베이직 유저 등급 업그레이드 테스트")
-    public void upgradeTest() {
+    public void upgradeTest() throws SQLException {
         String basicUser1Id = "basic1";
         String basicUser2Id = "basic2";
         String basicUser3Id = "basic3";
@@ -188,7 +188,7 @@ class UserDaoTest {
 
     @Test
     @DisplayName("실버 유저 등급 업그레이드 테스트")
-    public void upgradeTest2() {
+    public void upgradeTest2() throws SQLException {
         String silverUser1Id = "silver1";
         String silverUser2Id = "silver2";
 
@@ -207,7 +207,7 @@ class UserDaoTest {
 
     @Test
     @DisplayName("골드 유저 등급 업그레이드 테스트")
-    public void upgradeTest3() {
+    public void upgradeTest3() throws SQLException {
         String goldUserId = "gold";
         User goldUser = new User(goldUserId, "name", "password", GOLD, 40, 0);
 
@@ -254,19 +254,21 @@ class UserDaoTest {
     @Test
     @DisplayName("업그레이드 중간에 회원 에러 발생 시")
     public void upgradeErrorTest() {
-        TestUserService testUserService = new TestUserService(dao, user2.getId());
+        TestUserService testUserService = new TestUserService(dao, dataSource, user2.getId());
+
+        testUserService.setUserDao(dao);
+        testUserService.setDataSource(dataSource);
 
         testUserService.add(user1);
         testUserService.add(user2);
         testUserService.add(user3);
-        testUserService.setUserDao(dao);
 
 
         assertThrows(UserServiceException.class, () -> testUserService.upgradeLevels());
 
         User foundUser = dao.get(user1.getId());
 
-        assertThat(foundUser.getLevel()).isEqualTo(SILVER);
+        assertThat(foundUser.getLevel()).isEqualTo(BASIC);
 
     }
 }

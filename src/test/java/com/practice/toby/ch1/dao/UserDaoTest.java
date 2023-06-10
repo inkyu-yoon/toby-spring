@@ -3,7 +3,9 @@ package com.practice.toby.ch1.dao;
 import com.practice.toby.ch1.domain.User;
 import com.practice.toby.ch1.domain.UserConstants;
 import com.practice.toby.ch4.dao.UserDao;
+import com.practice.toby.ch5.service.TestUserService;
 import com.practice.toby.ch5.service.UserService;
+import com.practice.toby.ch5.service.UserServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -61,9 +63,8 @@ class UserDaoTest {
 
         User foundUser = dao.get(user1.getId());
 
-        checkSameUser(user1,foundUser);
+        checkSameUser(user1, foundUser);
     }
-
 
 
     @Test
@@ -169,9 +170,9 @@ class UserDaoTest {
         String basicUser2Id = "basic2";
         String basicUser3Id = "basic3";
 
-        User basicUser1 = new User(basicUser1Id, "name", "password", BASIC, MIN_LOGIN_COUNT_FOR_SILVER-1, 0);
+        User basicUser1 = new User(basicUser1Id, "name", "password", BASIC, MIN_LOGIN_COUNT_FOR_SILVER - 1, 0);
         User basicUser2 = new User(basicUser2Id, "name", "password", BASIC, MIN_LOGIN_COUNT_FOR_SILVER, 0);
-        User basicUser3 = new User(basicUser3Id, "name", "password", BASIC, MIN_LOGIN_COUNT_FOR_SILVER-1, 30);
+        User basicUser3 = new User(basicUser3Id, "name", "password", BASIC, MIN_LOGIN_COUNT_FOR_SILVER - 1, 30);
 
         dao.add(basicUser1);
         dao.add(basicUser2);
@@ -191,7 +192,7 @@ class UserDaoTest {
         String silverUser1Id = "silver1";
         String silverUser2Id = "silver2";
 
-        User silverUser1 = new User(silverUser1Id, "name", "password", SILVER, 40, MIN_RECOMMEND_COUNT_FOR_GOLD-1);
+        User silverUser1 = new User(silverUser1Id, "name", "password", SILVER, 40, MIN_RECOMMEND_COUNT_FOR_GOLD - 1);
         User silverUser2 = new User(silverUser2Id, "name", "password", SILVER, 50, MIN_RECOMMEND_COUNT_FOR_GOLD);
 
         dao.add(silverUser1);
@@ -226,6 +227,7 @@ class UserDaoTest {
             assertThat(foundUser.getLevel()).isEqualTo(user.getLevel());
         }
     }
+
     @Test
     @DisplayName("회원 기본 등급 테스트")
     public void userBasicLevel() {
@@ -249,7 +251,22 @@ class UserDaoTest {
     }
 
 
+    @Test
+    @DisplayName("업그레이드 중간에 회원 에러 발생 시")
+    public void upgradeErrorTest() {
+        TestUserService testUserService = new TestUserService(dao, user2.getId());
+
+        testUserService.add(user1);
+        testUserService.add(user2);
+        testUserService.add(user3);
+        testUserService.setUserDao(dao);
 
 
+        assertThrows(UserServiceException.class, () -> testUserService.upgradeLevels());
 
+        User foundUser = dao.get(user1.getId());
+
+        assertThat(foundUser.getLevel()).isEqualTo(SILVER);
+
+    }
 }

@@ -565,4 +565,111 @@ Stream API를 사용해서 코드도 간결해지고, 객체에게 행위를 부
   </details>
 
 
+  <details>
+
+  <summary><h3> 트랜잭션 동기화를 이용한 트랜잭션 통합과 예외 처리 </h3></summary>
+
+
+```java
+ public void upgradeLevels() {
+
+        List<User> users = userDao.getAll();
+
+        users.stream()
+                .filter(user -> canUpgradeLevel(user) )
+                .forEach(user -> userDao.update(user.upgradeLevel()));
+
+    }
+```
+
+위 로직은 업그레이드 조건을 만족하는 사용자들을 `get` 해서 `jdbcTemplate` 의 `update` 메서드를 사용해서 등급을 변경시키는 메서드이다.
+
+<br>
+
+
+
+```java
+    @Override
+    public void update(User user) {
+
+        this.jdbcTemplate.update("update users set name = ? , password = ? , level = ?, login = ?, " +
+                        "recommend=? where id = ?",
+                user.getName(), user.getPassword(), user.getLevel().getValue(), user.getLogin(), user.getRecommend(), user.getId());
+    }
+```
+
+조건에 만족하는 각 `user` 마다 `jdbcTemplate.update()` 로 DB에 접근하여 데이터를 갱신시키는 작업이다.
+
+만약, 조건에 만족하는 `users` 를 가져와서, `forEach`로 업그레이드 로직을 하던 중, 중간에 에러가 발생하면 어떻게 될까?
+
+<br>
+
+각 user마다 트랜잭션을 사용하기 때문에, 에러가 발생한 user만 등급 변경이 반영되어 있지 않고 이전에 변경된 user는 반영되어 있을 것이다.
+
+<br>
+
+따라서, 중간에 에러가 발생했을 때 이전에 변경되었던 회원도 반영되지 않도록 하려면 하나의 트랜잭션으로 묶어야 한다.
+
+<br>
+
+그럴때 사용할 수 있는 클래스가 `TransactionSynchronizationManager` 클래스이다.
+
+```java
+public void upgradeLevels() throws SQLException {
+
+    	// 트랜잭션 동기화 작업을 초기화
+        TransactionSynchronizationManager.initSynchronization();
+    	// 커넥션을 가져옴
+        Connection c = DataSourceUtils.getConnection(dataSource);
+    	// 자동으로 커밋되는 설정을 false & 트랜잭션 시작
+        c.setAutoCommit(false);
+
+
+        try {
+            List<User> users = userDao.getAll();
+
+            users.stream()
+                    .filter(user -> canUpgradeLevel(user))
+                    .forEach(user -> userDao.update(user.upgradeLevel()));
+
+            c.commit();
+        } catch (Exception e) {
+            // 에러 발생 시 rollback 한다.
+            c.rollback();
+            throw new RuntimeException(e);
+        } finally {
+            // db커넥션과 트랜잭션 관리 클래스를 종료한다.
+            DataSourceUtils.releaseConnection(c, dataSource);
+            TransactionSynchronizationManager.unbindResource(this.dataSource);
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+```
+
+위와 같이, 한 로직이 같은 트랜잭션을 공유하도록 로직을 변경하면 된다.
+
+<br>
+
+❓ **트랜잭션 동기화란 무엇일까** : Connection을 특별한 저장소에 보관해두고 이후에 호출되는 메서드는 저장된 Connection을 사용하게 하는 것
+
+
+
+<br>
+
+
+
+`JdbcTemplate` 메서드는 가장 먼저 **트랜잭션 동기화 저장소에 현재 시작된 트랜잭션을 가진 Connection 오브젝트가 존재하는지 확인한다.**
+
+존재해서 트랜잭션 동기화 저장소에서 가져온 Connection을 사용하는 경우에는 메서드가 종료될 때, **Connection을 닫지 않은 채로 작업을 마친다.**
+
+그렇게 해서, 모든 로직이 끝나고 `c.commit()` 과 같이 명시적으로 커밋을 했을 때 트랜잭션이 완료된다.
+
+`finally` 구문에서 `TransactionSynchronizationManager.unbindResource(this.dataSource);` 를 통해 트랜잭션 동기화 저장소에 있는 `dataSource`를 제거한다.
+
+
+
+
+
+  </details>
+
 </details>

@@ -5,9 +5,18 @@ import com.practice.toby.ch1.domain.Level;
 import com.practice.toby.ch1.domain.User;
 import com.practice.toby.ch1.domain.UserConstants;
 import com.practice.toby.ch4.dao.UserDao;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.mail.MailSender;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -17,6 +26,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Properties;
 
 import static com.practice.toby.ch1.domain.UserConstants.*;
 
@@ -24,6 +34,8 @@ import static com.practice.toby.ch1.domain.UserConstants.*;
 public class UserService {
 
     private final UserDao userDao;
+
+    private final MailSender mailSender;
 
     private final PlatformTransactionManager transactionManager;
 
@@ -38,13 +50,27 @@ public class UserService {
 
             users.stream()
                     .filter(user -> canUpgradeLevel(user))
-                    .forEach(user -> userDao.update(user.upgradeLevel()));
+                    .forEach(user -> {
+                        userDao.update(user.upgradeLevel());
+                        sendUpgradeEmail(user);
+                    });
 
             transactionManager.commit(transaction);
         } catch (Exception e) {
             transactionManager.rollback(transaction);
             throw new RuntimeException(e);
         }
+    }
+
+    protected void sendUpgradeEmail(User user) {
+
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(user.getEmail());
+        mailMessage.setFrom("useradmin@ksug.org");
+        mailMessage.setSubject("Upgrade 안내");
+        mailMessage.setText("등급 업그레이드");
+
+        this.mailSender.send(mailMessage);
     }
 
 

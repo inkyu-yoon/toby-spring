@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
+import org.springframework.mail.MailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
@@ -20,12 +22,17 @@ public class DaoFactory {
 
     @Bean
     public UserService userService() {
-        return new UserService(userDao(),transactionManager());
+        return new UserService(userDao(),mailSender(),transactionManager());
     }
     @Bean
     public UserDao userDao() {
         UserDao userDao = new UserDaoJdbc(new JdbcTemplate(dataSource()));
         return userDao;
+    }
+
+    @Bean
+    public MailSender mailSender() {
+        return new JavaMailSenderImpl();
     }
 
     @Bean

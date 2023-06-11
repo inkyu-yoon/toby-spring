@@ -1,11 +1,11 @@
 package com.practice.toby.ch1.dao;
 
 import com.practice.toby.ch1.domain.User;
-import com.practice.toby.ch1.domain.UserConstants;
 import com.practice.toby.ch4.dao.UserDao;
 import com.practice.toby.ch5.service.TestUserService;
 import com.practice.toby.ch5.service.UserService;
 import com.practice.toby.ch5.service.UserServiceException;
+import com.practice.toby.ch5.service.mail.DummyMailSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator;
+import org.springframework.mail.MailSender;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -21,7 +22,8 @@ import javax.sql.DataSource;
 import java.sql.SQLException;
 
 import static com.practice.toby.ch1.domain.Level.*;
-import static com.practice.toby.ch1.domain.UserConstants.*;
+import static com.practice.toby.ch1.domain.UserConstants.MIN_LOGIN_COUNT_FOR_SILVER;
+import static com.practice.toby.ch1.domain.UserConstants.MIN_RECOMMEND_COUNT_FOR_GOLD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -42,15 +44,18 @@ class UserDaoTest {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private MailSender mailSender;
+
     private User user1;
     private User user2;
     private User user3;
 
     @BeforeEach
     public void setUp() throws SQLException {
-        user1 = new User("id1", "name1", "p1", BASIC, MIN_LOGIN_COUNT_FOR_SILVER, 0);
-        user2 = new User("id2", "name2", "p2", SILVER, 55, MIN_RECOMMEND_COUNT_FOR_GOLD);
-        user3 = new User("id3", "name3", "p3", GOLD, 100, 40);
+        user1 = new User("id1", "name1", "p1", BASIC, MIN_LOGIN_COUNT_FOR_SILVER, 0, "email1");
+        user2 = new User("id2", "name2", "p2", SILVER, 55, MIN_RECOMMEND_COUNT_FOR_GOLD, "email2");
+        user3 = new User("id3", "name3", "p3", GOLD, 100, 40, "email3");
         dao.deleteAll();
 
     }
@@ -165,6 +170,7 @@ class UserDaoTest {
         assertThat(user.getLevel()).isEqualTo(foundUser.getLevel());
         assertThat(user.getLogin()).isEqualTo(foundUser.getLogin());
         assertThat(user.getRecommend()).isEqualTo(foundUser.getRecommend());
+        assertThat(user.getEmail()).isEqualTo(foundUser.getEmail());
     }
 
     @Test
@@ -174,9 +180,9 @@ class UserDaoTest {
         String basicUser2Id = "basic2";
         String basicUser3Id = "basic3";
 
-        User basicUser1 = new User(basicUser1Id, "name", "password", BASIC, MIN_LOGIN_COUNT_FOR_SILVER - 1, 0);
-        User basicUser2 = new User(basicUser2Id, "name", "password", BASIC, MIN_LOGIN_COUNT_FOR_SILVER, 0);
-        User basicUser3 = new User(basicUser3Id, "name", "password", BASIC, MIN_LOGIN_COUNT_FOR_SILVER - 1, 30);
+        User basicUser1 = new User(basicUser1Id, "name", "password", BASIC, MIN_LOGIN_COUNT_FOR_SILVER - 1, 0, "email1");
+        User basicUser2 = new User(basicUser2Id, "name", "password", BASIC, MIN_LOGIN_COUNT_FOR_SILVER, 0, "email2");
+        User basicUser3 = new User(basicUser3Id, "name", "password", BASIC, MIN_LOGIN_COUNT_FOR_SILVER - 1, 30, "email3");
 
         dao.add(basicUser1);
         dao.add(basicUser2);
@@ -196,8 +202,8 @@ class UserDaoTest {
         String silverUser1Id = "silver1";
         String silverUser2Id = "silver2";
 
-        User silverUser1 = new User(silverUser1Id, "name", "password", SILVER, 40, MIN_RECOMMEND_COUNT_FOR_GOLD - 1);
-        User silverUser2 = new User(silverUser2Id, "name", "password", SILVER, 50, MIN_RECOMMEND_COUNT_FOR_GOLD);
+        User silverUser1 = new User(silverUser1Id, "name", "password", SILVER, 40, MIN_RECOMMEND_COUNT_FOR_GOLD - 1,"email1");
+        User silverUser2 = new User(silverUser2Id, "name", "password", SILVER, 50, MIN_RECOMMEND_COUNT_FOR_GOLD,"email2");
 
         dao.add(silverUser1);
         dao.add(silverUser2);
@@ -213,7 +219,7 @@ class UserDaoTest {
     @DisplayName("골드 유저 등급 업그레이드 테스트")
     public void upgradeTest3() throws SQLException {
         String goldUserId = "gold";
-        User goldUser = new User(goldUserId, "name", "password", GOLD, 40, 0);
+        User goldUser = new User(goldUserId, "name", "password", GOLD, 40, 0,"email");
 
         dao.add(goldUser);
 
@@ -258,11 +264,12 @@ class UserDaoTest {
     @Test
     @DisplayName("업그레이드 중간에 회원 에러 발생 시")
     public void upgradeErrorTest() {
-        TestUserService testUserService = new TestUserService(dao, transactionManager, user2.getId());
+        TestUserService testUserService = new TestUserService(dao, mailSender, transactionManager, user2.getId());
 
         testUserService.setUserDao(dao);
         testUserService.setTransactionManager(transactionManager);
-
+        testUserService.setMailSender(new DummyMailSender());
+        
         testUserService.add(user1);
         testUserService.add(user2);
         testUserService.add(user3);

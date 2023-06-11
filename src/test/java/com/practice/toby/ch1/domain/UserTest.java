@@ -19,9 +19,9 @@ class UserTest {
 
     @BeforeEach
     public void setUp() throws SQLException {
-        user1 = new User("id1", "name1", "p1", BASIC, 51, 0);
-        user2 = new User("id2", "name2", "p2", SILVER, 55, 40);
-        user3 = new User("id3", "name3", "p3", GOLD, 100, 40);
+        user1 = new User("id1", "name1", "p1", BASIC, 51, 0, "email1");
+        user2 = new User("id2", "name2", "p2", SILVER, 55, 40,"email2");
+        user3 = new User("id3", "name3", "p3", GOLD, 100, 40,"email3");
 
     }
 

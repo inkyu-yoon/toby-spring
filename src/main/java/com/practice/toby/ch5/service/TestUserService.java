@@ -4,6 +4,7 @@ import com.practice.toby.ch1.domain.User;
 import com.practice.toby.ch4.dao.UserDao;
 import lombok.Setter;
 import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.mail.MailSender;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -23,9 +24,10 @@ public class TestUserService extends UserService {
 
     private PlatformTransactionManager transactionManager;
 
+    private MailSender mailSender;
 
-    public TestUserService(UserDao userDao, PlatformTransactionManager transactionManager, String id) {
-        super(userDao, transactionManager);
+    public TestUserService(UserDao userDao, MailSender mailSender, PlatformTransactionManager transactionManager, String id) {
+        super(userDao, mailSender, transactionManager);
         this.id = id;
     }
 
@@ -44,6 +46,7 @@ public class TestUserService extends UserService {
                             throw new UserServiceException();
                         } else {
                             userDao.update(user.upgradeLevel());
+                            sendUpgradeEmail(user);
                         }
                     });
 

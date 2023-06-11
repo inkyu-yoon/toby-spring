@@ -12,10 +12,20 @@ import lombok.Setter;
 public class User {
     String id;
     String name;
+
+
     String password;
     Level level;
     int login;
     int recommend;
+
+    String email;
+
+    public User(String id, String name, String password) {
+        this.id = id;
+        this.name = name;
+        this.password = password;
+    }
 
     public User upgradeLevel() {
 

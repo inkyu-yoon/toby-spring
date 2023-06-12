@@ -3,7 +3,7 @@ package com.practice.toby.ch1.dao;
 import com.practice.toby.ch1.domain.User;
 import com.practice.toby.ch4.dao.UserDao;
 import com.practice.toby.ch5.service.TestUserService;
-import com.practice.toby.ch5.service.UserService;
+import com.practice.toby.ch5.service.UserServiceImpl;
 import com.practice.toby.ch5.service.UserServiceException;
 import com.practice.toby.ch5.service.mail.DummyMailSender;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +42,7 @@ class UserDaoTest {
     private PlatformTransactionManager transactionManager;
 
     @Autowired
-    private UserService userService;
+    private UserServiceImpl userService;
 
     @Autowired
     private MailSender mailSender;

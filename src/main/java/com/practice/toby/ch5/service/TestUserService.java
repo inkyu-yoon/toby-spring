@@ -3,21 +3,17 @@ package com.practice.toby.ch5.service;
 import com.practice.toby.ch1.domain.User;
 import com.practice.toby.ch4.dao.UserDao;
 import lombok.Setter;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.mail.MailSender;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
 
 @Setter
-public class TestUserService extends UserService {
+public class TestUserService extends UserServiceImpl {
 
     private UserDao userDao;
     private String id;
@@ -27,7 +23,7 @@ public class TestUserService extends UserService {
     private MailSender mailSender;
 
     public TestUserService(UserDao userDao, MailSender mailSender, PlatformTransactionManager transactionManager, String id) {
-        super(userDao, mailSender, transactionManager);
+        super(userDao, mailSender);
         this.id = id;
     }
 

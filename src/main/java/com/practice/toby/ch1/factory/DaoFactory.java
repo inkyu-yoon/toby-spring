@@ -2,7 +2,10 @@ package com.practice.toby.ch1.factory;
 
 import com.practice.toby.ch1.dao.UserDaoJdbc;
 import com.practice.toby.ch4.dao.UserDao;
-import com.practice.toby.ch5.service.UserService;
+import com.practice.toby.ch5.service.UserServiceImpl;
+import com.practice.toby.ch5.service.mail.DummyMailSender;
+import com.practice.toby.ch6.service.UserService;
+import com.practice.toby.ch6.service.UserServiceTx;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +25,11 @@ public class DaoFactory {
 
     @Bean
     public UserService userService() {
-        return new UserService(userDao(),mailSender(),transactionManager());
+        return new UserServiceTx(userServiceImpl(), transactionManager());
+    }
+    @Bean
+    public UserServiceImpl userServiceImpl() {
+        return new UserServiceImpl(userDao(),mailSender());
     }
     @Bean
     public UserDao userDao() {
@@ -32,7 +39,7 @@ public class DaoFactory {
 
     @Bean
     public MailSender mailSender() {
-        return new JavaMailSenderImpl();
+        return new DummyMailSender();
     }
 
     @Bean

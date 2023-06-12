@@ -1,65 +1,39 @@
 package com.practice.toby.ch5.service;
 
 
-import com.practice.toby.ch1.domain.Level;
 import com.practice.toby.ch1.domain.User;
-import com.practice.toby.ch1.domain.UserConstants;
 import com.practice.toby.ch4.dao.UserDao;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Session;
-import jakarta.mail.Transport;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
+import com.practice.toby.ch6.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Properties;
 
 import static com.practice.toby.ch1.domain.UserConstants.*;
 
 @RequiredArgsConstructor
-public class UserService {
+public class UserServiceImpl implements UserService {
 
     private final UserDao userDao;
 
     private final MailSender mailSender;
 
-    private final PlatformTransactionManager transactionManager;
-
 
     // Basic 멤버가 login 횟수가 50이상이면 실버로, 실버인 멤버가 추천 30 이상이면 골드로 그 외는 변경 없음
     public void upgradeLevels() throws SQLException {
-        TransactionStatus transaction = transactionManager.getTransaction(new DefaultTransactionDefinition());
+        List<User> users = userDao.getAll();
 
-
-        try {
-            List<User> users = userDao.getAll();
-
-            users.stream()
-                    .filter(user -> canUpgradeLevel(user))
-                    .forEach(user -> {
-                        userDao.update(user.upgradeLevel());
-                        sendUpgradeEmail(user);
-                    });
-
-            transactionManager.commit(transaction);
-        } catch (Exception e) {
-            transactionManager.rollback(transaction);
-            throw new RuntimeException(e);
-        }
+        users.stream()
+                .filter(user -> canUpgradeLevel(user))
+                .forEach(user -> {
+                    userDao.update(user.upgradeLevel());
+                    sendUpgradeEmail(user);
+                });
     }
 
     protected void sendUpgradeEmail(User user) {

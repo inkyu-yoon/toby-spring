@@ -760,3 +760,29 @@ PlatformTransactionManager transactionManager = new JTATransactionManager();
   </details>
 
 </details>
+
+
+
+<details>
+
+<summary><h2> Chapter 6. AOP </h2></summary>
+
+<details>
+
+<summary><h3> 테스트 대상 오브젝트를 고립시킨 후 테스트 코드를 작성하는 이유 </h3></summary>
+
+
+하나의 기능을 테스트하는 것 처럼 보이지만, 의존관계를 갖는 경우 테스트가 진행되는 동안에 같이 실행된다.
+
+의존하는 오브젝트가 DB나 서버에 의존하는 오브젝트라면, 단순한 비즈니스 로직만을 테스트하는 것이 아니게 된다.
+
+<br>
+
+테스트하려는 코드가 아닌, 환경 세팅에 문제가 생기면 테스트가 실패하거나 결과가 달라질 수 있기 때문이다. 그리고 수행 속도도 느려질 수 있다.
+
+<br>
+
+그래서 테스트의 대상이 환경이나, 외부 서버, 다른 클래스의 코드에 종속되고 영향을 받지 않도록 고립시킬 필요가 있다.
+
+  </details>
+</details>

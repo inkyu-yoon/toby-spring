@@ -785,4 +785,96 @@ PlatformTransactionManager transactionManager = new JTATransactionManager();
 그래서 테스트의 대상이 환경이나, 외부 서버, 다른 클래스의 코드에 종속되고 영향을 받지 않도록 고립시킬 필요가 있다.
 
   </details>
+
+<details>
+
+<summary><h3> 다이나믹 프록시 </h3></summary>
+
+인터페이스를 구현하는 클래스 로직에 부가기능을 추가하고 싶은 경우, 프록시 패턴을 사용할 수 있다.
+
+같은 인터페이스를 구현하면서 해당 인터페이스를 DI받아 기존의 클래스 로직을 실행할 수 있도록 하고, 부가기능을 추가하고 싶다면 추가하는 방식이다.
+
+```java
+// 인터페이스
+public interface Hello {
+    String sayHello(String name);
+}
+
+// 기존 로직
+public class HelloTarget implements Hello{
+    @Override
+    public String sayHello(String name) {
+        return "Hello " + name;
+    }
+}
+
+// 부가기능
+public class HelloUppercase implements Hello {
+    private final Hello hello;
+
+    @Override
+    public String sayHello(String name) {
+        return hello.sayHello(name).toUpperCase();
+    }
+}
+```
+
+위와 같은 방식으로 구현할 수 있다.
+
+이러한 방식이 일반적인 프록시 패턴 방식이다.
+
+이 방식은 부가기능을 추가했을 때, **중복되는 부분이 많이 발생**하고 부가기능이 추가되지 않는 메서드는 단순히 기존 메서드를 호출하는 메서드가 되는데
+
+이는 인터페이스의 규모가 크면 부담스러운 작업이 되고, **타깃 인터페이스의 메서드가 추가되거나 변경될때마다 함께 수정**해줘야 한다는 단점이 존재한다.
+
+이러한 문제를 **다이나믹 프록시**를 사용하면 해결할 수 있고, 리플렉션 API를 이용해서 프록시를 생성한다.
+
+<br>
+
+다이나믹 프록시는 런타임 시 다이나믹하게 만들어지는 오브젝트이다.
+
+다이나믹 프록시로부터 요청을 전달받으려면 `InvocationHandler` 인터페이스를 구현해야한다.
+
+구현해야하는 메서드는 `invoke()` 하나 뿐이고 다이나믹 프록시가 클라이언트로부터 받는 모든 요청은 `invoke()` 메서드로 전달된다.
+
+<br>
+
+```java
+public class UppercaseHandler implements InvocationHandler {
+
+    Hello target;
+
+    public UppercaseHandler(Hello target) {
+        this.target = target;
+    }
+
+    // 형변환 안정성을 위해서는, instanceof 로 체크하는 것이 바람직한 방법
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        String ret = (String) method.invoke(target, args);
+        return ret.toUpperCase();
+    }
+}
+
+```
+
+`Hello` 클래스의 내용을 모두 대문자로 만들어주는 부가기능이 담긴 프록시이다.
+
+`invoke()` 메서드 하나로, `Hello` 클래스의 메서드 개수와 상관없이 부가기능을 처리할 수 있다.
+
+<br>
+
+```java
+    @Test
+    public void test() {
+        Hello helloProxy = (Hello) Proxy.newProxyInstance(
+                getClass().getClassLoader(),
+                new Class[]{Hello.class},
+                new UppercaseHandler(new HelloTarget())
+        );
+    }
+```
+
+위와 같이, 클래스로더와 어떤 인터페이의 프록시를 만들것인지, 어떤 `InvocationHandler` 구현 클래스를 사용할 것인지 파라미터로 설정하면 된다.
+  </details>
 </details>

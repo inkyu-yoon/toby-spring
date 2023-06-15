@@ -875,6 +875,6 @@ public class UppercaseHandler implements InvocationHandler {
     }
 ```
 
-위와 같이, 클래스로더와 어떤 인터페이의 프록시를 만들것인지, 어떤 `InvocationHandler` 구현 클래스를 사용할 것인지 파라미터로 설정하면 된다.
+위와 같이, 클래스로더와 어떤 인터페이스의 프록시를 만들것인지, 어떤 `InvocationHandler` 구현 클래스를 사용할 것인지 파라미터로 설정하면 된다.
   </details>
 </details>

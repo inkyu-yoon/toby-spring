@@ -788,7 +788,7 @@ PlatformTransactionManager transactionManager = new JTATransactionManager();
 
 <details>
 
-<summary><h3> 다이나믹 프록시 </h3></summary>
+<summary><h3> 다이나믹 프록시와 InvocationHandler </h3></summary>
 
 인터페이스를 구현하는 클래스 로직에 부가기능을 추가하고 싶은 경우, 프록시 패턴을 사용할 수 있다.
 
@@ -877,4 +877,100 @@ public class UppercaseHandler implements InvocationHandler {
 
 위와 같이, 클래스로더와 어떤 인터페이스의 프록시를 만들것인지, 어떤 `InvocationHandler` 구현 클래스를 사용할 것인지 파라미터로 설정하면 된다.
   </details>
+
+
+<details>
+
+<summary><h3> 다이나믹 프록시 DI 방법과 FactoryBean </h3></summary>
+
+`InvocationHandler` 를 implements하는 클래스를 정의하고, `Proxy.newProxyInstance()`와 같은 메서드를 통해서 다이나믹 프록시를 생성했다.
+
+그리고 생성한 다이나믹 프록시에 있는 메서드를 사용하면, `@Override` 한 `invoke()` 메서드에 정의된 대로 로직이 진행된다.
+
+`method.invoke(target,args)`로 타깃의 메서드를 먼저 사용하고 후처리를 한다거나
+
+`method.getName()`으로 메서드의 이름으로 필터링 한 뒤, 추가한 부가기능을 실행하고 `method.invoke(target,args)` 로 타깃의 메서드를 실행할 수 도 있다.
+
+<br>
+
+어쨌든, 이러한 다이나믹 프록시를 사용하기 위해서는 **DI를 이용해야하는데** 일반적으로 DI는 리플렉션 API를 통해 클래스의 이름과 프로퍼티로 등록하지만
+
+다이나믹 프록시의 특성 상, 파라미터를 통해 어**떤 인터페이스의 프록시를 만들것인지 결정**되므로 빈에 등록할 수 없다.
+
+<br>
+
+따라서, 빈으로 등록하기 위해서는 `FactoryBean` 인터페이스를 구현해야한다.
+
+<br>
+
+```java
+@Setter
+public class ProxyFactoryBean implements FactoryBean<Object> {
+    Object target;
+    Class<?> serviceInterface;
+
+    @Override
+    public Object getObject() throws Exception {
+        CustomHandler customHandler = new CustomHandler(target); //InvocationHandler를 구현한 클래스
+        return Proxy.newProxyInstance(getClass().getClassLoader(),
+                new Class[]{serviceInterface},
+                customHandler);
+    }
+
+    @Override
+    public Class<?> getObjectType() {
+        return serviceInterface;
+    }
+
+    @Override
+    public boolean isSingleton() {
+        return false;
+    }
+}
+
+```
+
+위와 같이 `FactoryBean` 인터페이스를 구현한다.
+
+`getObjectType` 는 `getObject()` 메서드가 반환하는 객체의 타입을 정확하게 알려주기 위해 사용된다.
+
+이를 통해 DI(Dependency Injection) 컨테이너가 팩토리 빈이 생성하는 객체의 타입을 알 수 있고, 필요한 의존성 주입을 수행할 수 있다.
+
+<br>
+
+`getObject`는 `InvocationHandler`를 구현하여 부가 기능을 추가한 프록시 객체를 반환하도록 되어 있다.
+
+이 팩토리 빈이 생성해주는 `serviceInterface` 타입의 메서드를 사용하면 `InvocationHandler`의 `invoke()` 메서드에 정의된 대로 실행이 될 것이다.
+
+<br>
+
+```java
+@Configuration
+public class AppConfig {
+    @Bean
+    public CustomService myBean() throws Exception {
+        return (CustomService)ProxyFactoryBean().getObject();
+    }
+
+    @Bean
+    public ProxyFactoryBean proxyFactoryBean() {
+        ProxyFactoryBean factoryBean = new ProxyFactoryBean();
+        factoryBean.setServiceInterface(CustomServiceInterface.class);
+        factoryBean.setTarget(CustomService.class);
+        return factoryBean;
+    }
+}
+```
+
+위와 같이 `@Config` 클래스를 설정해주면
+
+`ProxyFactoryBean` 클래스는 내부적으로 `CustomServiceInterface`를 상속받아 구현부가 담겨있는 `CustomService`의 메서드에 `InvocationHandler` 를 이용해 부가기능을 추가한 다이나믹 프록시 객체를 반환하는 `getObject()` 메서드가 있는 클래스를 반환하게 된다.
+
+<br>
+
+위 설정파일 상, myBean 이라는 이름으로 등록된 빈을 사용하면, 다이나믹 프록시 객체를 사용하게 되고 원하는 부가기능이 담긴 객체가 된다.
+
+  </details>
+
+
 </details>

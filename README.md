@@ -1013,38 +1013,55 @@ public class AppConfig {
 
 </details>
 
-</details>
-
-
 <details>
 
-<summary><h2> Chapter 9. 값 타입 </h2></summary>
+<summary><h3> 빈 후처리기와 포인트컷 클래스</h3></summary>
 
-<details>
+빈 후처리기는 `BeanPostProcessor` 인터페이스를 구현해서 만들 수 있다.
 
-<summary><h3> @Embedded 와 @MappedSuperclass 의 차이</h3></summary>
+빈 후처리기를 빈으로서 등록하면, 빈 오브젝트가 생성될 때 마다 빈 후처리기에 보내서 후처리 작업을 요청한다.
 
-둘 다 특정 필드를 객체로 관리하고, 이 객체를 사용하는 엔티티의 테이블에 속성이 추가된다는 공통점이 있다.
+`DefaultAdvisorAutoProxyCreator` 빈 후처리기가 등록되어 있으면, 빈 오브젝트를 만들 때 마다 후처리기에 빈을 보낸다.
 
-언뜻 비슷해보이지만, 구별해야할 점이 `@Embedded`는 값, 그 자체에 집중한다는 점이다.
+전달받은 빈이 프록시 적용 대상인지 확인하고, 적용 대상이라면 프록시 생성기에게 현재 빈에 대한 프록시를 만들게 하고 만들어진 프록시에 어드바이저를 연결해준다.
 
-`@MappedSuperclass` 의 경우 클래스에 붙이고, 이를 사용하는 엔티티는 해당 클래스를 상속받게 된다.
-
-따라서, `@MappedSuperclass` 가 있는 클래스에 정의된 어노테이션이나 메서드를 사용할 수 있다.
-
-하지만, `@Embedded` 가 있는 클래스에 정의되어 있는 어노테이션이나 메서드를, 사용하는 엔티티는 엔티티 레벨에서 사용할 수 없고
-
-특정 기능을 수행하는 어노테이션의 기능 역시 전달되지 않는다.
+최종적으로 빈에 등록되는 것은 프록시 객체가 등록이 된다.
 
 <br>
 
-따라서 `@Embedded` 는 관계가 밀접한 필드들을 묶어서 관리할 수 있고 다른 엔티티에도 쓰이는 경우에 재사용할 수 있는 장점이 있는것이고
+클라이언트가 프록시 객체로 등록된 빈을 사용하게 되면, 해당 프록시 객체의 PointCut으로 부가기능 적용대상인지 판단하고 원본 객체의 메서드에 부가기능을 추가해서 실행하게 된다.
 
-`@MappedSuperclass`의 경우 상위 클래스에서 정의한 기능이나 속성 등을 전달하는 데에 더 목적이 있다.
+<br>
 
+결과적으로 빈 후처리기를 빈으로 등록하고, 클래스 혹은 메서드가 프록시 대상인지 판별할 수 있는 Pointcut 을 빈으로 등록해주면,
 
+모든 빈을 등록할 때, 포인트컷에 의해 프록시 객체가 될지 안될지를 판단하게 된다.
 
+```java
+public class NameMatchClassMethodPointcut extends NameMatchMethodPointcut {
+    public void setMappedClassName(String mappedClassName) {
+        this.setClassFilter(new SimpleClassFilter(mappedClassName));
+        
+    }
+    static class SimpleClassFilter implements ClassFilter{
+        String mappedName;
+
+        private SimpleClassFilter(String mappedName) {
+            this.mappedName = mappedName;
+                    
+        }
+
+        @Override
+        public boolean matches(Class<?> clazz) {
+            return PatternMatchUtils.simpleMatch(mappedName, clazz.getSimpleName());
+        }
+    }
+}
+```
+
+위와 같은 포인트 컷을 빈으로 등록해주고 `setMappedName()`으로 메서드 이름 패턴을, `setMappedClassName()`으로 클래스 이름 패턴 정보를 제공하면 된다.
 
 
 </details>
+
 </details>

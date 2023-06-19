@@ -34,6 +34,9 @@ dependencies {
 	// 메일 발송
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: '3.0.5'
+	testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: '3.0.5'
+
 }
 
 tasks.named('test') {

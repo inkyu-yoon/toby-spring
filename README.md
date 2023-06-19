@@ -1064,4 +1064,51 @@ public class NameMatchClassMethodPointcut extends NameMatchMethodPointcut {
 
 </details>
 
+
+<details>
+
+<summary><h3> 포인트 컷 표현식</h3></summary>
+
+`AspectJExpressionPointcut` 클래스를 사용하면 포인트컷 표현식을 사용할 수 있다.
+
+`AspectJ` 라는 유명한 프레임워크에서 제공하는 것을 가져와 문법을 확장해서 사용하는 것이다.
+
+그래서 **AspectJ 포인트컷 표현식** 이라고도 한다.
+
+```java
+package com.practice.toby.ch6.pointcut;
+
+public class Target implements TargetInterface{
+    @Override
+    public int minus(int a, int b) throws RuntimeException {
+        return 0;
+    }
+}
+
+```
+
+위와 같은 경로에 `Target` 클래스가 있고 파라미터가 `(int a, int b)` 인 `minus` 메서드가 있을 때,
+
+`"execution(public int com.practice.toby.ch6.pointcut.Target.minus(int, int) throws java.lang.RuntimeException)"` 와 같은 표현식으로 나타낼 수 있다.
+
+<br>
+
+```
+execution([접근제한자 패턴] 리턴타입패턴 [패키지클래스이름패턴.]메서드이름패턴 (타입패턴 | "..",...))
+```
+
+`[]` 는 옵션 항목이다.
+
+리턴 타입을 `*` 로 표현하면 와일드 카드로서 모든 타입 혹은 모든 메서드명이 적용된다.
+
+파라미터의 개수와 타입을 무시하려면 `..` 를 넣어주면 된다.
+
+<br>
+
+따라서, `"execution(* *(..))"` 로 표현하면, 모든 리턴타입과 메서드 명을 허용하고 파라미터의 타입과 개수를 신경쓰지 않는 포인트컷이 된다.
+
+
+
+</details>
+
 </details>

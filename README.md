@@ -1111,4 +1111,26 @@ execution([접근제한자 패턴] 리턴타입패턴 [패키지클래스이름�
 
 </details>
 
+
+<details>
+
+<summary><h3> 트랜잭션 전파 (propagation)</h3></summary>
+
+
+트랜잭션 안에서 실행되는 로직이, 다른 메서드를 호출할 때, 이미 존재하는 트랜잭션이 그 메서드에 끼치는 영향이라고 볼 수 있다.
+
+1️⃣ **PROPAGATION_REQUIRED**
+
+진행 중인 트랜잭션이 없으면 새로 시작하고, 이미 시작된 트랜잭션이 있으면 이에 참여한다.
+
+2️⃣ **PROPAGATION_REQUIRES_NEW**
+
+항상 새로운 트랜잭션을 시작해 독자적으로 동작한다.
+
+3️⃣ **PROPAGATION_NOT_SUPPORTED**
+
+진행 중인 트랜잭션이 있어도 무시하고 트랜잭션 없이 동작하게 한다.
+
+</details>
+
 </details>

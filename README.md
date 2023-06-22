@@ -1133,4 +1133,121 @@ execution([접근제한자 패턴] 리턴타입패턴 [패키지클래스이름�
 
 </details>
 
+<details>
+
+<summary><h3> @Transactional</h3></summary>
+
+
+이전까지 사용했던 방식인 포인트컷 표현식을 이용해서 트랜잭션을 적용하는 방식은 메서드 이름 패턴으로 적용해야하므로 세밀하게 적용하기 힘들다.
+
+이럴때 사용할 수 있는 어노테이션이 `@Transactional` 어노테이션이다.
+
+```java
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
+@Reflective
+public @interface Transactional {
+
+	@AliasFor("transactionManager")
+	String value() default "";
+
+	@AliasFor("value")
+	String transactionManager() default "";
+
+	String[] label() default {};
+
+	Propagation propagation() default Propagation.REQUIRED;
+
+	Isolation isolation() default Isolation.DEFAULT;
+
+	int timeout() default TransactionDefinition.TIMEOUT_DEFAULT;
+
+	String timeoutString() default "";
+
+	boolean readOnly() default false;
+
+	Class<? extends Throwable>[] rollbackFor() default {};
+
+	String[] rollbackForClassName() default {};
+
+	Class<? extends Throwable>[] noRollbackFor() default {};
+
+	String[] noRollbackForClassName() default {};
+
+}
+
+```
+
+
+
+`@Transactional` 어노테이션은 위와 같다.
+
+<br>
+
+```java
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
+@Reflective
+```
+
+먼저 `@Target` 어노테이션이 포함되어있는데, `ElementType.TYPE` 은 클래스 혹은 인터페이스에, `ElementType.METHOD`는 메서드에 적용할 수 있음을 의미한다.
+
+`@Retention(RetentionPolicy.RUNTIME)` 은 런타임 시에 적용된다는 의미이다.
+
+`@Inherited` 어노테이션은, 해당 어노테이션이 클래스나 인터페이스에 적용되었을 때, 하위 클래스에도 적용된다는 것을 의미한다.
+
+`@Documented` 어노테이션은 해당 어노테이션에 대한 정보가 API 문서에 포함되도록 하는 어노테이션이다.
+
+`@Reflective` 어노테이션은 리플렉션 API를 사용하기 위해 적용한다.
+
+<br>
+
+메서드를 살펴보면, 트랜잭션 매니저 지정 · 전파 방식 · 격리 수준 · 타임아웃 · 읽기 전용 설정 · 롤백을 수행할 예외 클래스 지정 등을 설정할 수 있다.
+
+참고로, 전파 기본 옵션은 `REQUIRED`로 기존 트랜잭션이 존재하는 상태에서 `@Transactional` 어노테이션이 적용된 메서드를 호출하면,
+
+호출된 메서드는 트랜잭션을 새로 생성하지 않고 참여하는 방식이다.
+
+따라서, 이 경우에는 전파된 트랜잭션의 설정에 따를 것이다.
+
+<br>
+
+`@Transactional` 어노테이션을 적용한 클래스나 메서드를 스프링은 타킷 오브젝트로 인식한다.
+
+지정된 클래스나 메서드를 포인트 컷으로 등록되는 것이라 생각하면 된다.
+
+<br>
+
+`@Transactional` 어노테이션은 메서드와 클래스 레벨에 지정될 수 있는데, 우선순위는 아래와 같다.
+
+1️⃣ 타깃 메서드에 `@Transactional` 어노테이션이 적용되었는지 확인
+
+2️⃣ 타깃 클래스에 `@Transactional` 어노테이션이 적용되었는지 확인
+
+3️⃣ 타깃 클래스의 상위 클래스(인터페이스)가 있다면 상위 클래스의 메서드에 `@Transactional` 어노테이션이 적용되었는지 확인
+
+4️⃣ 타깃 클래스의 상위 클래스(인터페이스)에 `@Transactional` 어노테이션이 적용되었는지 확인
+
+<br>
+
+따라서, 공통적으로 사용되는 설정의 트랜잭션은 클래스 레벨에 해두고,
+
+읽기 전용 트랜잭션이 필요한 메서드가 필요한 경우 메서드 레벨에 `@Transactional(readOnly = true)` 를 붙이면 읽기 전용 트랜잭션이 우선으로 적용될 것이다.
+
+<br>
+
+테스트 코드에서의 `@Transactional` 은 기본적으로 테스트 코드 수행 후 Rollback이 발생하도록 되어있다.
+
+따라서, Rollback을 원하지 않는다면 `@Rollback(false)` 어노테이션을 추가하거나
+
+클래스 레벨에 `@TransactionalConfiguration(defaultRolllback=false)` 를 적용시키면 된다.
+
+
+
+</details>
+
 </details>
